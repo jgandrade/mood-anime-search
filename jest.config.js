@@ -6,4 +6,7 @@ module.exports = {
     "**/__tests__/**/*.test.[jt]s?(x)",
     "**/?(*.)+(spec|test).[jt]s?(x)",
   ],
+  moduleNameMapper: {
+    "^pg$": "<rootDir>/node_modules/pg",
+  },
 };

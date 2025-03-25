@@ -1,12 +1,36 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { motion } from "framer-motion";
 import { ThemeToggle } from "../ui/theme-toggle";
+import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 const Header = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+
+    getUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
+
   return (
     <motion.header
       className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg dark:bg-background/60 bg-background/70 px-4 py-3 border-b border-border/30"
@@ -27,19 +51,15 @@ const Header = () => {
 
         <div className="flex items-center gap-4">
           <ThemeToggle />
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden sm:flex backdrop-blur-md bg-background/50 hover:bg-background/80"
-          >
-            Sign In
-          </Button>
-          <Button
-            size="sm"
-            className="bg-primary/90 hover:bg-primary backdrop-blur-md"
-          >
-            Try Free for 7 Days
-          </Button>
+          <Link href={user ? "/dashboard" : "/login"}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-primary/90 hover:bg-primary backdrop-blur-md text-secondary"
+            >
+              {user ? "Dashboard" : "Sign In"}
+            </Button>
+          </Link>
         </div>
       </div>
     </motion.header>

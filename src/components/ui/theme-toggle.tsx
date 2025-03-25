@@ -1,11 +1,27 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Only show the toggle after component is mounted on the client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Render placeholder while not mounted to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <div
+        className="h-9 w-9 rounded-full bg-secondary/20 border border-border/50"
+        aria-hidden="true"
+      />
+    );
+  }
 
   return (
     <motion.button

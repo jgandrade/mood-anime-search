@@ -5,11 +5,11 @@ interface AnimeDomainProps {
   id: string;
   malId: number;
   title: string;
-  synopsis: string;
-  genres: string[];
+  synopsis: string | null;
+  genres: string[] | null;
   embedding: number[];
-  score: number;
-  popularity: number;
+  score: number | null;
+  popularity: number | null;
   type: string | null;
   status: string | null;
   season: string | null;
@@ -55,11 +55,11 @@ export class Anime extends AggregateRoot<AnimeDomainProps> {
     return this.props.title;
   }
 
-  get synopsis(): string {
+  get synopsis(): string | null {
     return this.props.synopsis;
   }
 
-  get genres(): string[] {
+  get genres(): string[] | null {
     return this.props.genres;
   }
 
@@ -67,11 +67,11 @@ export class Anime extends AggregateRoot<AnimeDomainProps> {
     return this.props.embedding;
   }
 
-  get score(): number {
+  get score(): number | null {
     return this.props.score;
   }
 
-  get popularity(): number {
+  get popularity(): number | null {
     return this.props.popularity;
   }
 

@@ -8,43 +8,7 @@ import {
   vector,
   boolean,
 } from "drizzle-orm/pg-core";
-
-export interface AnimeModelProps {
-  id: string;
-  malId: number;
-  title: string;
-  synopsis: string;
-  genres: string[];
-  embedding: number[];
-  score: number;
-  popularity: number;
-  type?: string;
-  status?: string;
-  season?: string;
-  year?: number;
-  rating?: string;
-  duration?: string;
-  episodes?: number;
-  broadcast?: string;
-  source?: string;
-  themes?: string[];
-  demographics?: string[];
-  studios?: string[];
-  producers?: string[];
-  titleEnglish?: string;
-  titleJapanese?: string;
-  titleSynonyms?: string[];
-  airing?: boolean;
-  background?: string;
-  members?: number;
-  favorites?: number;
-  rank?: number;
-  scoredBy?: number;
-  imageUrl?: string;
-  malUrl?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import type { InferSelectModel } from "drizzle-orm";
 
 export const animes = pgTable("animes", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -82,5 +46,7 @@ export const animes = pgTable("animes", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+export type AnimeModelProps = InferSelectModel<typeof animes>;
 
 export const AnimeModel = animes;

@@ -1,7 +1,7 @@
 import { AggregateRoot } from "@/core/domain/AggregateRoot";
 import type { UniqueEntityID } from "@/core/domain/UniqueEntityID";
 
-interface AnimeProps {
+interface AnimeDomainProps {
   id: string;
   malId: number;
   title: string;
@@ -10,40 +10,40 @@ interface AnimeProps {
   embedding: number[];
   score: number;
   popularity: number;
-  type?: string;
-  status?: string;
-  season?: string;
-  year?: number;
-  rating?: string;
-  duration?: string;
-  episodes?: number;
-  broadcast?: string;
-  source?: string;
-  themes?: string[];
-  demographics?: string[];
-  studios?: string[];
-  producers?: string[];
-  titleEnglish?: string;
-  titleJapanese?: string;
-  titleSynonyms?: string[];
-  airing?: boolean;
-  background?: string;
-  members?: number;
-  favorites?: number;
-  rank?: number;
-  scoredBy?: number;
-  imageUrl?: string;
-  malUrl?: string;
+  type: string | null;
+  status: string | null;
+  season: string | null;
+  year: number | null;
+  rating: string | null;
+  duration: string | null;
+  episodes: number | null;
+  broadcast: string | null;
+  source: string | null;
+  themes: string[] | null;
+  demographics: string[] | null;
+  studios: string[] | null;
+  producers: string[] | null;
+  titleEnglish: string | null;
+  titleJapanese: string | null;
+  titleSynonyms: string[] | null;
+  airing: boolean | null;
+  background: string | null;
+  members: number | null;
+  favorites: number | null;
+  rank: number | null;
+  scoredBy: number | null;
+  imageUrl: string | null;
+  malUrl: string | null;
   updatedAt: Date;
   createdAt: Date;
 }
 
-export class Anime extends AggregateRoot<AnimeProps> {
-  private constructor(props: AnimeProps, id?: UniqueEntityID) {
+export class Anime extends AggregateRoot<AnimeDomainProps> {
+  private constructor(props: AnimeDomainProps, id?: UniqueEntityID) {
     super(props, id);
   }
 
-  public static create(props: AnimeProps, id?: UniqueEntityID): Anime {
+  public static create(props: AnimeDomainProps, id?: UniqueEntityID): Anime {
     return new Anime(props, id);
   }
 
@@ -75,99 +75,99 @@ export class Anime extends AggregateRoot<AnimeProps> {
     return this.props.popularity;
   }
 
-  get type(): string | undefined {
+  get type(): string | null {
     return this.props.type;
   }
 
-  get status(): string | undefined {
+  get status(): string | null {
     return this.props.status;
   }
 
-  get season(): string | undefined {
+  get season(): string | null {
     return this.props.season;
   }
 
-  get year(): number | undefined {
+  get year(): number | null {
     return this.props.year;
   }
 
-  get rating(): string | undefined {
+  get rating(): string | null {
     return this.props.rating;
   }
 
-  get duration(): string | undefined {
+  get duration(): string | null {
     return this.props.duration;
   }
 
-  get episodes(): number | undefined {
+  get episodes(): number | null {
     return this.props.episodes;
   }
 
-  get broadcast(): string | undefined {
+  get broadcast(): string | null {
     return this.props.broadcast;
   }
 
-  get source(): string | undefined {
+  get source(): string | null {
     return this.props.source;
   }
 
-  get themes(): string[] | undefined {
+  get themes(): string[] | null {
     return this.props.themes;
   }
 
-  get demographics(): string[] | undefined {
+  get demographics(): string[] | null {
     return this.props.demographics;
   }
 
-  get studios(): string[] | undefined {
+  get studios(): string[] | null {
     return this.props.studios;
   }
 
-  get producers(): string[] | undefined {
+  get producers(): string[] | null {
     return this.props.producers;
   }
 
-  get titleEnglish(): string | undefined {
+  get titleEnglish(): string | null {
     return this.props.titleEnglish;
   }
 
-  get titleJapanese(): string | undefined {
+  get titleJapanese(): string | null {
     return this.props.titleJapanese;
   }
 
-  get titleSynonyms(): string[] | undefined {
+  get titleSynonyms(): string[] | null {
     return this.props.titleSynonyms;
   }
 
-  get airing(): boolean | undefined {
+  get airing(): boolean | null {
     return this.props.airing;
   }
 
-  get background(): string | undefined {
+  get background(): string | null {
     return this.props.background;
   }
 
-  get members(): number | undefined {
+  get members(): number | null {
     return this.props.members;
   }
 
-  get favorites(): number | undefined {
+  get favorites(): number | null {
     return this.props.favorites;
   }
 
-  get rank(): number | undefined {
+  get rank(): number | null {
     return this.props.rank;
   }
 
-  get scoredBy(): number | undefined {
+  get scoredBy(): number | null {
     return this.props.scoredBy;
   }
 
-  get imageUrl(): string | undefined {
+  get imageUrl(): string | null {
     return this.props.imageUrl;
   }
 
-  get malUrl(): string | undefined {
+  get malUrl(): string | null {
     return this.props.malUrl;
   }
 

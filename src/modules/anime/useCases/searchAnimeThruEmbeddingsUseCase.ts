@@ -34,11 +34,8 @@ export class SearchAnimeThruEmbeddingsUseCase
       // 1. Get anime recommendations from LLM
       const prompt = `Recommend 10 anime titles based on the user query: "${userInput}". The query may describe anime, characters, themes, scenarios, or mood. Always return 10 relevant titles. If no exact match, suggest similar ones. Return ONLY a JSON array, nothing else. Example: ["Anime Title 1", "Anime Title 2", ...]`;
 
-      console.log("userInput", userInput);
-
       const llmResponse = await this.aiService.getCompletion(prompt);
 
-      console.log("LLM Response:", llmResponse);
       let recommendedTitles: string[] = [];
 
       try {

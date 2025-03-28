@@ -10,11 +10,23 @@ interface OpenAIError {
 export class OpenAiService {
   private static instance: OpenAiService;
   private client: OpenAI;
+  private embeddingClient: OpenAI;
 
   private constructor() {
-    this.client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+    this.embeddingClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY_EMBEDDING,
     });
+
+    if (process.env.DEFAULT_OPEN_AI_MODEL === "deepseek-chat") {
+      this.client = new OpenAI({
+        baseURL: "https://api.deepseek.com",
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+    } else {
+      this.client = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+    }
   }
 
   public static getInstance(): OpenAiService {
@@ -26,7 +38,7 @@ export class OpenAiService {
 
   public async getEmbedding(text: string): Promise<number[]> {
     try {
-      const response = await this.client.embeddings.create({
+      const response = await this.embeddingClient.embeddings.create({
         model: "text-embedding-3-small",
         input: text,
       });
@@ -54,7 +66,7 @@ export class OpenAiService {
 
   public async getCompletion(prompt: string): Promise<string> {
     const response = await this.client.chat.completions.create({
-      model: "gpt-4o",
+      model: process.env.DEFAULT_OPEN_AI_MODEL || "gpt-4o",
       messages: [
         {
           role: "system",
@@ -70,6 +82,11 @@ export class OpenAiService {
       max_tokens: 500,
     });
 
-    return response.choices[0].message.content || "";
+    console.log(
+      "LLM Response:",
+      response.choices[0].message.content || "No response"
+    );
+
+    return response.choices[0].message.content || "No response";
   }
 }

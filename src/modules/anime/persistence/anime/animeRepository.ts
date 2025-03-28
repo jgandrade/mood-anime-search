@@ -1,45 +1,9 @@
 import type { Anime } from "../../domain/anime";
+import type { AnimeModelProps } from "./model/animeModel";
 import { db } from "@/db";
 import { animes } from "./model/animeModel";
-import { eq, sql, ilike, or } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { AnimeMapper } from "./animeMapper";
-
-type RawAnimeResult = {
-  id: string;
-  mal_id: number;
-  title: string;
-  synopsis: string;
-  genres: string[];
-  score: number;
-  popularity: number;
-  type: string | null;
-  status: string | null;
-  season: string | null;
-  year: number | null;
-  rating: string | null;
-  duration: string | null;
-  episodes: number | null;
-  broadcast: string | null;
-  source: string | null;
-  themes: string[] | null;
-  demographics: string[] | null;
-  studios: string[] | null;
-  producers: string[] | null;
-  title_english: string | null;
-  title_japanese: string | null;
-  title_synonyms: string[] | null;
-  airing: boolean | null;
-  background: string | null;
-  members: number | null;
-  favorites: number | null;
-  rank: number | null;
-  scored_by: number | null;
-  image_url: string | null;
-  mal_url: string | null;
-  created_at: Date;
-  updated_at: Date;
-  similarity: number;
-};
 
 export class AnimeRepository {
   async save(anime: Anime): Promise<void> {
@@ -61,35 +25,21 @@ export class AnimeRepository {
     const anime = result[0];
     if (!anime) return null;
 
-    const mappedAnime = {
-      ...anime,
-      type: anime.type ?? undefined,
-      status: anime.status ?? undefined,
-      season: anime.season ?? undefined,
-      year: anime.year ?? undefined,
-      rating: anime.rating ?? undefined,
-      duration: anime.duration ?? undefined,
-      episodes: anime.episodes ?? undefined,
-      broadcast: anime.broadcast ?? undefined,
-      source: anime.source ?? undefined,
-      themes: anime.themes ?? undefined,
-      demographics: anime.demographics ?? undefined,
-      studios: anime.studios ?? undefined,
-      producers: anime.producers ?? undefined,
-      titleEnglish: anime.titleEnglish ?? undefined,
-      titleJapanese: anime.titleJapanese ?? undefined,
-      titleSynonyms: anime.titleSynonyms ?? undefined,
-      airing: anime.airing ?? undefined,
-      background: anime.background ?? undefined,
-      members: anime.members ?? undefined,
-      favorites: anime.favorites ?? undefined,
-      rank: anime.rank ?? undefined,
-      scoredBy: anime.scoredBy ?? undefined,
-      imageUrl: anime.imageUrl ?? undefined,
-      malUrl: anime.malUrl ?? undefined,
-    };
+    return AnimeMapper.toDomain(anime);
+  }
 
-    return AnimeMapper.toDomain(mappedAnime);
+  async findById(id: string): Promise<Anime | null> {
+    const result = await db
+      .select()
+      .from(animes)
+      .where(eq(animes.id, id))
+      .limit(1);
+
+    const anime = result[0];
+
+    if (!anime) return null;
+
+    return AnimeMapper.toDomain(anime);
   }
 
   async findSimilarByEmbedding(
@@ -101,7 +51,7 @@ export class AnimeRepository {
       WITH similarity_scores AS (
         SELECT 
           id,
-          mal_id,
+          mal_id AS "malId",
           title,
           synopsis,
           genres,
@@ -120,24 +70,24 @@ export class AnimeRepository {
           demographics,
           studios,
           producers,
-          title_english,
-          title_japanese,
-          title_synonyms,
+          title_english AS "titleEnglish",
+          title_japanese AS "titleJapanese",
+          title_synonyms AS "titleSynonyms",
           airing,
           background,
           members,
           favorites,
           rank,
-          scored_by,
-          image_url,
-          mal_url,
-          created_at,
-          updated_at,
-          -- Vector similarity (semantic understanding)
+          scored_by AS "scoredBy",
+          image_url AS "imageUrl",
+          mal_url AS "malUrl",
+          created_at AS "createdAt",
+          updated_at AS "updatedAt",
+          -- Vector similarity
           (1 - (embedding <=> ${sql.raw(
             `'[${embedding.join(",")}]'::vector`
           )}))::numeric as embedding_similarity,
-          -- Title matches (exact matching + popularity)
+          -- Title matches
           CASE 
             WHEN LOWER(title) = ANY(${sql.raw(
               `ARRAY[${searchQuery
@@ -165,8 +115,8 @@ export class AnimeRepository {
         *,
         LEAST(1::numeric, 
           CASE 
-            WHEN title_boost >= 0.8 THEN 1.0::numeric -- Exact title match takes precedence
-            ELSE (embedding_similarity * 0.6) + (title_boost * 0.4) -- 60% weight to semantic understanding, 40% to title matches
+            WHEN title_boost >= 0.8 THEN 1.0::numeric
+            ELSE (embedding_similarity * 0.6) + (title_boost * 0.4)
           END
         ) as final_similarity
       FROM similarity_scores
@@ -174,49 +124,8 @@ export class AnimeRepository {
       LIMIT ${limit}
     `);
 
-    const rawResults = result as unknown as (RawAnimeResult & {
-      final_similarity: number;
-    })[];
-    return rawResults.map((anime) => {
-      const mappedAnime = {
-        id: anime.id,
-        malId: anime.mal_id,
-        title: anime.title,
-        synopsis: anime.synopsis,
-        genres: anime.genres,
-        score: anime.score,
-        popularity: anime.popularity,
-        type: anime.type ?? undefined,
-        status: anime.status ?? undefined,
-        season: anime.season ?? undefined,
-        year: anime.year ?? undefined,
-        rating: anime.rating ?? undefined,
-        duration: anime.duration ?? undefined,
-        episodes: anime.episodes ?? undefined,
-        broadcast: anime.broadcast ?? undefined,
-        source: anime.source ?? undefined,
-        themes: anime.themes ?? undefined,
-        demographics: anime.demographics ?? undefined,
-        studios: anime.studios ?? undefined,
-        producers: anime.producers ?? undefined,
-        titleEnglish: anime.title_english ?? undefined,
-        titleJapanese: anime.title_japanese ?? undefined,
-        titleSynonyms: anime.title_synonyms ?? undefined,
-        airing: anime.airing ?? undefined,
-        background: anime.background ?? undefined,
-        members: anime.members ?? undefined,
-        favorites: anime.favorites ?? undefined,
-        rank: anime.rank ?? undefined,
-        scoredBy: anime.scored_by ?? undefined,
-        imageUrl: anime.image_url ?? undefined,
-        malUrl: anime.mal_url ?? undefined,
-        embedding: [],
-        createdAt: anime.created_at,
-        updatedAt: anime.updated_at,
-        similarity: anime.final_similarity,
-      };
-
-      return AnimeMapper.toDomain(mappedAnime);
+    return (result as unknown as AnimeModelProps[]).map((anime) => {
+      return AnimeMapper.toDomain(anime);
     });
   }
 

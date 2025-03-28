@@ -32,7 +32,21 @@ export class SearchAnimeThruEmbeddingsUseCase
       }
 
       // 1. Get anime recommendations from LLM
-      const prompt = `Recommend 10 anime titles based on the user query: "${userInput}". The query may describe anime, characters, themes, scenarios, or mood. Always return 10 relevant titles. If no exact match, suggest similar ones. Return ONLY a JSON array, nothing else. Example: ["Anime Title 1", "Anime Title 2", ...]`;
+      const prompt = `Recommend 10 anime titles based on the user's query: "${userInput}". Follow these guidelines:
+
+      1. **Intent Detection**:
+        - If the query describes *mood/theme* (e.g., "uplifting," "make me cry"), prioritize tonal fit using genre conventions (e.g., "Slice of Life" for relaxing shows).
+        - If the query references *character traits* (e.g., "white-haired and powerful"), include anime with iconic characters matching the description.
+        - For *vague/creative queries* (e.g., "squatters area like hell"), infer tropes (dystopian/urban decay) and match accordingly.
+
+      2. **Relevance Ranking**:
+        - Prioritize widely recognized titles unless the query implies niche preferences.
+        - Avoid spoilers or over-literal interpretations (e.g., "hell" can mean dystopian or metaphorical suffering).
+
+      3. **Output**: 
+        - ONLY return a JSON array of 10 titles, ordered by relevance. Example: ["Title 1", "Title 2"].
+
+      Do NOT force exact matches; adapt to the query's spirit.`;
 
       const llmResponse = await this.aiService.getCompletion(prompt);
 

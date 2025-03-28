@@ -54,12 +54,12 @@ export class OpenAiService {
 
   public async getCompletion(prompt: string): Promise<string> {
     const response = await this.client.chat.completions.create({
-      model: "gpt-4-0125-preview",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
           content:
-            "You are a helpful assistant that provides concise and accurate responses.",
+            "You are an anime geek that provides concise, accurate, and up to date responses.",
         },
         {
           role: "user",

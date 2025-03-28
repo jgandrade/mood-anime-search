@@ -59,11 +59,13 @@ export function SearchAnime() {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 3;
-  const maxWords = 50;
+  const maxCharacters = 150;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const words = e.target.value.split(/\s+/).filter((word) => word.length > 0);
-    if (words.length <= maxWords) {
+    const characters = e.target.value
+      .split(/\s+/)
+      .filter((character) => character.length > 0);
+    if (characters.length <= maxCharacters) {
       setQuery(e.target.value);
     }
   };
@@ -110,9 +112,9 @@ export function SearchAnime() {
     }
   };
 
-  const wordCount = query.split(/\s+/).filter((word) => word.length > 0).length;
-  const isNearLimit = wordCount > maxWords * 0.8;
-  const isAtLimit = wordCount >= maxWords;
+  const characterCount = query.split("").length;
+  const isNearLimit = characterCount > maxCharacters * 0.8;
+  const isAtLimit = characterCount >= maxCharacters;
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8">
@@ -148,7 +150,7 @@ export function SearchAnime() {
                       : "text-muted-foreground"
                 )}
               >
-                {wordCount}/{maxWords}
+                {characterCount}/{maxCharacters}
               </span>
             </motion.div>
           </div>

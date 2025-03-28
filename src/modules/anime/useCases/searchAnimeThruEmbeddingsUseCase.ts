@@ -1,7 +1,7 @@
 import type { Anime } from "../domain/anime";
 import { Result } from "@/core/logic/Result";
 import type { UseCase } from "@/core/domain/UseCase";
-import { OpenAiService } from "../domain/services/openAiService";
+import { AIService } from "../domain/services/aiService";
 import { AnimeRepository } from "../persistence/anime/animeRepository";
 
 interface SearchAnimeThruEmbeddingsDTO {
@@ -13,11 +13,11 @@ type Response = Result<Anime[]>;
 export class SearchAnimeThruEmbeddingsUseCase
   implements UseCase<SearchAnimeThruEmbeddingsDTO, Response>
 {
-  private readonly openAiService: OpenAiService;
+  private readonly aiService: AIService;
   private readonly animeRepository: AnimeRepository;
 
   constructor() {
-    this.openAiService = OpenAiService.getInstance();
+    this.aiService = AIService.getInstance();
     this.animeRepository = new AnimeRepository();
   }
 
@@ -32,11 +32,11 @@ export class SearchAnimeThruEmbeddingsUseCase
       }
 
       // 1. Get anime recommendations from LLM
-      const prompt = `Based on the following user query: "${userInput}", recommend 10 anime titles that would be most relevant. 
-      Consider factors like genre, themes, and overall appeal. 
-      Return ONLY a JSON array of anime titles, nothing else. Example: ["Anime Title 1", "Anime Title 2", ...]`;
+      const prompt = `Recommend 10 anime titles based on the user query: "${userInput}". The query may describe anime, characters, themes, scenarios, or mood. Always return 10 relevant titles. If no exact match, suggest similar ones. Return ONLY a JSON array, nothing else. Example: ["Anime Title 1", "Anime Title 2", ...]`;
 
-      const llmResponse = await this.openAiService.getCompletion(prompt);
+      console.log("userInput", userInput);
+
+      const llmResponse = await this.aiService.getCompletion(prompt);
 
       console.log("LLM Response:", llmResponse);
       let recommendedTitles: string[] = [];
@@ -55,7 +55,7 @@ export class SearchAnimeThruEmbeddingsUseCase
 
       // 2. Create embedding for all titles combined
       const combinedTitles = recommendedTitles.join(", ");
-      const embedding = await this.openAiService.getEmbedding(combinedTitles);
+      const embedding = await this.aiService.getEmbedding(combinedTitles);
 
       // 3. Use the embedding to find similar anime
       const results = await this.animeRepository.findSimilarByEmbedding(

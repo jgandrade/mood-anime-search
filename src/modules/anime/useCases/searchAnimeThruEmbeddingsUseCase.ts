@@ -8,7 +8,11 @@ interface SearchAnimeThruEmbeddingsDTO {
   userInput: string;
 }
 
-type Response = Result<Anime[]>;
+type Response = Result<{
+  bySimilarity: Anime[];
+  byPopularity: Anime[];
+  byRating: Anime[];
+}>;
 
 export class SearchAnimeThruEmbeddingsUseCase
   implements UseCase<SearchAnimeThruEmbeddingsDTO, Response>
@@ -28,25 +32,28 @@ export class SearchAnimeThruEmbeddingsUseCase
       const { userInput } = request;
 
       if (!userInput) {
-        return Result.fail<Anime[]>("User input is required");
+        return Result.fail<{
+          bySimilarity: Anime[];
+          byPopularity: Anime[];
+          byRating: Anime[];
+        }>("User input is required");
       }
 
       // 1. Get anime recommendations from LLM
       const prompt = `Recommend 10 anime titles based on the user's query: "${userInput}". Follow these guidelines:
 
-      1. **Intent Detection**:
-        - If the query describes *mood/theme* (e.g., "uplifting," "make me cry"), prioritize tonal fit using genre conventions (e.g., "Slice of Life" for relaxing shows).
-        - If the query references *character traits* (e.g., "white-haired and powerful"), include anime with iconic characters matching the description.
-        - For *vague/creative queries* (e.g., "squatters area like hell"), infer tropes (dystopian/urban decay) and match accordingly.
+  1. **Exact Match Check**: 
+    - If the query is an exact anime title (e.g., "Sousou no Frieren"), include it as the first result, then add 9 thematically similar titles.
 
-      2. **Relevance Ranking**:
-        - Prioritize widely recognized titles unless the query implies niche preferences.
-        - Avoid spoilers or over-literal interpretations (e.g., "hell" can mean dystopian or metaphorical suffering).
+  2. **Intent Detection** (if no exact match):
+    - For *mood/theme* (e.g., "uplifting"), prioritize tonal fit.
+    - For *character traits*, match iconic characters.
+    - For *vague queries*, infer tropes (e.g., "hell" → dystopian).
 
-      3. **Output**: 
-        - ONLY return a JSON array of 10 titles, ordered by relevance. Example: ["Title 1", "Title 2"].
+  3. **Output**: 
+    - ONLY return a JSON array of 10 titles, ordered by relevance. Example: ["Exact Match", "Thematic Match 1", ...].
 
-      Do NOT force exact matches; adapt to the query's spirit.`;
+  Default to thematic recommendations if no exact match exists.`;
 
       const llmResponse = await this.aiService.getCompletion(prompt);
 
@@ -71,13 +78,34 @@ export class SearchAnimeThruEmbeddingsUseCase
       // 3. Use the embedding to find similar anime
       const results = await this.animeRepository.findSimilarByEmbedding(
         embedding,
-        20,
+        50,
         userInput
       );
 
-      return Result.ok<Anime[]>(results);
+      // Create separate sorted arrays
+      const bySimilarity = [...results].sort(
+        (a, b) => (Number(b.similarity) || 0) - (Number(a.similarity) || 0)
+      );
+
+      const byPopularity = [...results].sort(
+        (a, b) => (Number(a.popularity) || 0) - (Number(b.popularity) || 0)
+      );
+
+      const byRating = [...results].sort(
+        (a, b) => (Number(b.score) || 0) - (Number(a.score) || 0)
+      );
+
+      return Result.ok({
+        bySimilarity,
+        byPopularity,
+        byRating,
+      });
     } catch (error) {
-      return Result.fail<Anime[]>(`Failed to search anime: ${error}`);
+      return Result.fail<{
+        bySimilarity: Anime[];
+        byPopularity: Anime[];
+        byRating: Anime[];
+      }>(`Failed to search anime: ${error}`);
     }
   }
 }

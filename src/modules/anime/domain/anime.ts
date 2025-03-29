@@ -36,6 +36,7 @@ interface AnimeDomainProps {
   malUrl: string | null;
   updatedAt: Date;
   createdAt: Date;
+  similarity?: number;
 }
 
 export class Anime extends AggregateRoot<AnimeDomainProps> {
@@ -177,5 +178,9 @@ export class Anime extends AggregateRoot<AnimeDomainProps> {
 
   get updatedAt(): Date {
     return this.props.updatedAt;
+  }
+
+  get similarity(): number | undefined {
+    return this.props.similarity;
   }
 }

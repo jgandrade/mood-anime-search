@@ -48,81 +48,81 @@ export class AnimeRepository {
     searchQuery?: string
   ): Promise<Anime[]> {
     const result = await db.execute(sql`
-      WITH similarity_scores AS (
-        SELECT 
-          id,
-          mal_id AS "malId",
-          title,
-          synopsis,
-          genres,
-          score,
-          popularity,
-          type,
-          status,
-          season,
-          year,
-          rating,
-          duration,
-          episodes,
-          broadcast,
-          source,
-          themes,
-          demographics,
-          studios,
-          producers,
-          title_english AS "titleEnglish",
-          title_japanese AS "titleJapanese",
-          title_synonyms AS "titleSynonyms",
-          airing,
-          background,
-          members,
-          favorites,
-          rank,
-          scored_by AS "scoredBy",
-          image_url AS "imageUrl",
-          mal_url AS "malUrl",
-          created_at AS "createdAt",
-          updated_at AS "updatedAt",
-          -- Vector similarity
-          (1 - (embedding <=> ${sql.raw(
-            `'[${embedding.join(",")}]'::vector`
-          )}))::numeric as embedding_similarity,
-          -- Title matches
-          CASE 
-            WHEN LOWER(title) = ANY(${sql.raw(
-              `ARRAY[${searchQuery
-                ?.split(",")
-                .map((t) => `'${t.trim().toLowerCase()}'`)
-                .join(",")}]`
-            )}) THEN 1.0::numeric
-            WHEN LOWER(title_english) = ANY(${sql.raw(
-              `ARRAY[${searchQuery
-                ?.split(",")
-                .map((t) => `'${t.trim().toLowerCase()}'`)
-                .join(",")}]`
-            )}) THEN 1.0::numeric
-            WHEN LOWER(title_japanese) = ANY(${sql.raw(
-              `ARRAY[${searchQuery
-                ?.split(",")
-                .map((t) => `'${t.trim().toLowerCase()}'`)
-                .join(",")}]`
-            )}) THEN 1.0::numeric
-            ELSE 0::numeric
-          END as title_boost
-        FROM "animes"
-      )
+    WITH similarity_scores AS (
       SELECT 
-        *,
-        LEAST(1::numeric, 
-          CASE 
-            WHEN title_boost >= 0.8 THEN 1.0::numeric
-            ELSE (embedding_similarity * 0.6) + (title_boost * 0.4)
-          END
-        ) as final_similarity
-      FROM similarity_scores
-      ORDER BY final_similarity DESC
-      LIMIT ${limit}
-    `);
+        id,
+        mal_id AS "malId",
+        title,
+        synopsis,
+        genres,
+        score,
+        popularity,
+        type,
+        status,
+        season,
+        year,
+        rating,
+        duration,
+        episodes,
+        broadcast,
+        source,
+        themes,
+        demographics,
+        studios,
+        producers,
+        title_english AS "titleEnglish",
+        title_japanese AS "titleJapanese",
+        title_synonyms AS "titleSynonyms",
+        airing,
+        background,
+        members,
+        favorites,
+        rank,
+        scored_by AS "scoredBy",
+        image_url AS "imageUrl",
+        mal_url AS "malUrl",
+        created_at AS "createdAt",
+        updated_at AS "updatedAt",
+        -- Vector similarity
+        (1 - (embedding <=> ${sql.raw(
+          `'[${embedding.join(",")}]'::vector`
+        )}))::numeric as embedding_similarity,
+        -- Title matches
+        CASE 
+          WHEN LOWER(title) = ANY(${sql.raw(
+            `ARRAY[${searchQuery
+              ?.split(",")
+              .map((t) => `'${t.trim().toLowerCase()}'`)
+              .join(",")}]`
+          )}) THEN 1.0::numeric
+          WHEN LOWER(title_english) = ANY(${sql.raw(
+            `ARRAY[${searchQuery
+              ?.split(",")
+              .map((t) => `'${t.trim().toLowerCase()}'`)
+              .join(",")}]`
+          )}) THEN 1.0::numeric
+          WHEN LOWER(title_japanese) = ANY(${sql.raw(
+            `ARRAY[${searchQuery
+              ?.split(",")
+              .map((t) => `'${t.trim().toLowerCase()}'`)
+              .join(",")}]`
+          )}) THEN 1.0::numeric
+          ELSE 0::numeric
+        END as title_boost
+      FROM "animes"
+    )
+    SELECT 
+      *,
+      LEAST(1::numeric, 
+        CASE 
+          WHEN title_boost >= 0.8 THEN 1.0::numeric
+          ELSE (embedding_similarity * 0.7) + (title_boost * 0.3)
+        END
+      ) as final_similarity
+    FROM similarity_scores
+    ORDER BY final_similarity DESC
+    LIMIT ${limit}
+  `);
 
     return (result as unknown as AnimeModelProps[]).map((anime) => {
       return AnimeMapper.toDomain(anime);

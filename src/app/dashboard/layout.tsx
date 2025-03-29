@@ -1,5 +1,4 @@
 import { Header } from "@/components/dashboard/header";
-import { AnimatedBackground } from "@/components/ui/animated-background";
 
 export default function DashboardLayout({
   children,
@@ -12,7 +11,6 @@ export default function DashboardLayout({
         <Header />
         <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
       </div>
-      <AnimatedBackground />
     </div>
   );
 }

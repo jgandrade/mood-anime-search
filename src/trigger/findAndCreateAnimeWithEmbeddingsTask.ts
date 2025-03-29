@@ -12,6 +12,7 @@ export const findAndCreateAnimeWithEmbeddingsTask = task({
   id: "find-and-create-anime-with-embeddings",
   run: async () => {
     console.log("Starting to fetch and create anime with embeddings...");
+
     try {
       let page = 1;
       let hasMore = true;
@@ -46,12 +47,14 @@ export const findAndCreateAnimeWithEmbeddingsTask = task({
           totalProcessed++;
         }
 
+        // If we got less than the batch size, we've reached the end
         if (topAnime.length < batchSize) {
           hasMore = false;
         }
 
         page++;
 
+        // Add a small delay between pages to avoid rate limiting
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
@@ -64,21 +67,19 @@ export const findAndCreateAnimeWithEmbeddingsTask = task({
 });
 
 function buildRichText(anime: Anime): string {
-  const core = [
+  return [
     anime.title,
-    anime.titleEnglish,
-    anime.titleJapanese,
+    anime.titleEnglish !== anime.title ? anime.titleEnglish : null,
+    anime.titleJapanese !== anime.title ? anime.titleJapanese : null,
     anime.synopsis,
-    `${anime.genres?.join(", ")}`,
-    `${anime.themes?.join(", ")}`,
-    anime.type,
-    anime.status,
-    `${anime.studios?.join(", ")}`,
-    anime.source,
+    anime.genres?.join(", "),
+    anime.themes?.join(", "),
+    anime.demographics?.length
+      ? `Audience: ${anime.demographics.join(", ")}`
+      : null,
+    anime.studios?.length ? `Studio: ${anime.studios[0]}` : null,
     anime.background,
   ]
     .filter(Boolean)
-    .join(" | ");
-
-  return `${core}`;
+    .join(". ");
 }

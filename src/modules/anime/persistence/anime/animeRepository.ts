@@ -116,7 +116,7 @@ export class AnimeRepository {
       LEAST(1::numeric, 
         CASE 
           WHEN title_boost >= 0.8 THEN 1.0::numeric
-          ELSE (embedding_similarity * 0.7) + (title_boost * 0.3)
+          ELSE (embedding_similarity * 0.5) + (title_boost * 0.5)
         END
       ) as final_similarity
     FROM similarity_scores

@@ -51,9 +51,10 @@ export class SearchAnimeThruEmbeddingsUseCase
     - For *vague queries*, infer tropes (e.g., "hell" → dystopian).
 
   3. **Output**: 
-    - ONLY return a JSON array of 10 titles, ordered by relevance. Example: ["Exact Match", "Thematic Match 1", ...].
-
-  Default to thematic recommendations if no exact match exists.`;
+    - STRICTLY ONLY return a JSON array of 10 titles, ordered by relevance.
+    - NEVER include explanations, notes, or markdown (e.g., no "\`\`\`json").
+    - Example valid output: ["Title 1", "Title 2", ..., "Title 10"]
+    `;
 
       const llmResponse = await this.aiService.getCompletion(prompt);
 
